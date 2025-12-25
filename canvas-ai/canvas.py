@@ -26,7 +26,7 @@ colors = [
      (0, 255, 0)   
           
 ]
-color_names = ["ERASER", "BLUE", "GREEN", "YELLOW","PURPLE"]
+color_names = ["Eraser", "Blue", "Yellow", "Purple","Green"]
 current_color = colors[0]
 current_idx = 0
 
