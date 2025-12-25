@@ -121,14 +121,12 @@ while True:
             thumb_x = int(hand.landmark[4].x * w)
             thumb_y = int(hand.landmark[4].y * h)
 
-            # Selection using index+middle OR thumb extended into toolbar area
             thumb_extended_up = hand.landmark[4].y < hand.landmark[3].y
 
             if (index_up and middle_up) or (thumb_extended_up and thumb_y < 90):
                 mode = "SELECT"
                 prev_x, prev_y = 0, 0
 
-                # choose which pointer to use for selection (index if available, else thumb)
                 sel_x = x if (index_up and middle_up) else thumb_x
                 sel_y = y if (index_up and middle_up) else thumb_y
 
@@ -169,7 +167,7 @@ while True:
                 (10, h - 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
     cv2.putText(frame,
-                "Index: Draw | Index+Middle: Select Color | C: Clear | Q: Quit",
+                " C: Clear | Q: Quit",
                 (10, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
 
     cv2.imshow("AI Canvas", frame)
