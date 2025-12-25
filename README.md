@@ -23,3 +23,8 @@ Install dependencies:
 
 ```bash
 pip install -r requirements.txt
+
+<p align="center">
+  <img src="assets/air_canvas_demo.png" width="600"/>
+</p>
+
