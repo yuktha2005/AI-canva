@@ -1,6 +1,6 @@
 const videoElement = document.getElementById('input_video');
-const outputCanvas = document.getElementById('output_canvas');
-const outputCtx = outputCanvas.getContext('2d');
+const overlayCanvas = document.getElementById('overlay_canvas');
+const overlayCtx = overlayCanvas.getContext('2d');
 const drawingCanvas = document.getElementById('drawing_canvas');
 const drawingCtx = drawingCanvas.getContext('2d');
 const uiCanvas = document.getElementById('ui_canvas');
@@ -11,7 +11,7 @@ const loadingScreen = document.getElementById('loading');
 // Set actual processing resolution
 const WIDTH = 1280;
 const HEIGHT = 720;
-outputCanvas.width = WIDTH; outputCanvas.height = HEIGHT;
+overlayCanvas.width = WIDTH; overlayCanvas.height = HEIGHT;
 drawingCanvas.width = WIDTH; drawingCanvas.height = HEIGHT;
 uiCanvas.width = WIDTH; uiCanvas.height = HEIGHT;
 
@@ -32,7 +32,7 @@ function drawUI() {
     uiCtx.clearRect(0, 0, WIDTH, HEIGHT);
     
     // Draw Top Toolbar background
-    uiCtx.fillStyle = "rgba(15, 23, 42, 0.6)"; // Dark semi-transparent
+    uiCtx.fillStyle = "rgba(15, 23, 42, 0.6)";
     uiCtx.fillRect(0, 0, WIDTH, 100);
     
     const boxWidth = WIDTH / colors.length;
@@ -70,7 +70,6 @@ function drawUI() {
         uiCtx.font = "bold 26px Inter, sans-serif";
         uiCtx.textAlign = "center";
         uiCtx.textBaseline = "middle";
-        // Simple text shadow for contrast
         if (!c.isEraser) {
             uiCtx.shadowColor = "rgba(0,0,0,0.3)";
             uiCtx.shadowBlur = 4;
@@ -78,7 +77,7 @@ function drawUI() {
             uiCtx.shadowColor = "transparent";
         }
         uiCtx.fillText(c.name, centerX, centerY);
-        uiCtx.shadowColor = "transparent"; // reset
+        uiCtx.shadowColor = "transparent";
     }
 }
 
@@ -120,19 +119,19 @@ camera.start().then(() => {
 });
 
 function onResults(results) {
-    outputCtx.save();
-    outputCtx.clearRect(0, 0, WIDTH, HEIGHT);
+    // Clear the overlay canvas each frame (transparent so video shows through)
+    overlayCtx.save();
+    overlayCtx.clearRect(0, 0, WIDTH, HEIGHT);
     
-    // Draw mirrored video feed
-    outputCtx.translate(WIDTH, 0);
-    outputCtx.scale(-1, 1);
-    outputCtx.drawImage(results.image, 0, 0, WIDTH, HEIGHT);
+    // Mirror the overlay context to match the mirrored video
+    overlayCtx.translate(WIDTH, 0);
+    overlayCtx.scale(-1, 1);
     
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
         for (const landmarks of results.multiHandLandmarks) {
-            // Draw skeleton
-            drawConnectors(outputCtx, landmarks, HAND_CONNECTIONS, {color: '#ffffff', lineWidth: 2});
-            drawLandmarks(outputCtx, landmarks, {color: '#94a3b8', lineWidth: 1, radius: 3});
+            // Draw hand skeleton on the overlay
+            drawConnectors(overlayCtx, landmarks, HAND_CONNECTIONS, {color: 'rgba(255,255,255,0.6)', lineWidth: 2});
+            drawLandmarks(overlayCtx, landmarks, {color: '#94a3b8', lineWidth: 1, radius: 3});
             
             const indexTip = landmarks[8];
             const indexPip = landmarks[6];
@@ -146,7 +145,7 @@ function onResults(results) {
             const middleUp = middleTip.y < middlePip.y;
             const thumbUp = thumbTip.y < thumbIp.y;
             
-            // Map X coordinates (mirrored) and Y coordinates
+            // Map X coordinates (mirrored for drawing canvas) and Y coordinates
             const x = WIDTH - (indexTip.x * WIDTH);
             const y = indexTip.y * HEIGHT;
             
@@ -160,19 +159,19 @@ function onResults(results) {
                 let selX = (indexUp && middleUp) ? x : thumbX;
                 let selY = (indexUp && middleUp) ? y : thumbY;
                 
-                // Draw cursor on output canvas (requires un-mirroring for correct rendering context position)
+                // Draw cursor on overlay (in the mirrored context, use raw landmark coords)
                 let renderX = (indexUp && middleUp) ? indexTip.x * WIDTH : thumbTip.x * WIDTH;
                 let renderY = (indexUp && middleUp) ? indexTip.y * HEIGHT : thumbTip.y * HEIGHT;
                 
-                outputCtx.beginPath();
-                outputCtx.arc(renderX, renderY, 15, 0, 2 * Math.PI);
-                outputCtx.fillStyle = colors[currentColorIdx].isEraser ? "#ffffff" : colors[currentColorIdx].hex;
-                outputCtx.fill();
-                outputCtx.lineWidth = 2;
-                outputCtx.strokeStyle = "#000";
-                outputCtx.stroke();
+                overlayCtx.beginPath();
+                overlayCtx.arc(renderX, renderY, 15, 0, 2 * Math.PI);
+                overlayCtx.fillStyle = colors[currentColorIdx].isEraser ? "#ffffff" : colors[currentColorIdx].hex;
+                overlayCtx.fill();
+                overlayCtx.lineWidth = 2;
+                overlayCtx.strokeStyle = "#000";
+                overlayCtx.stroke();
                 
-                // If cursor is in toolbar area
+                // If cursor is in toolbar area, select color
                 if (selY < 100) {
                     const boxWidth = WIDTH / colors.length;
                     const idx = Math.floor(selX / boxWidth);
@@ -184,25 +183,25 @@ function onResults(results) {
             } 
             // DRAW MODE: Index up, Middle down
             else if (indexUp && !middleUp) {
-                // Draw cursor
-                outputCtx.beginPath();
-                outputCtx.arc(indexTip.x * WIDTH, indexTip.y * HEIGHT, 10, 0, 2 * Math.PI);
-                outputCtx.fillStyle = colors[currentColorIdx].isEraser ? "#ffffff" : colors[currentColorIdx].hex;
-                outputCtx.fill();
+                // Draw cursor on overlay
+                overlayCtx.beginPath();
+                overlayCtx.arc(indexTip.x * WIDTH, indexTip.y * HEIGHT, 10, 0, 2 * Math.PI);
+                overlayCtx.fillStyle = colors[currentColorIdx].isEraser ? "#ffffff" : colors[currentColorIdx].hex;
+                overlayCtx.fill();
                 
                 if (prevX === 0 && prevY === 0) {
                     prevX = x;
                     prevY = y;
                 }
                 
-                // Draw on persistent canvas
+                // Draw on persistent drawing canvas
                 drawingCtx.beginPath();
                 drawingCtx.moveTo(prevX, prevY);
                 drawingCtx.lineTo(x, y);
                 
                 if (colors[currentColorIdx].isEraser) {
                     drawingCtx.globalCompositeOperation = 'destination-out';
-                    drawingCtx.lineWidth = 50; // Thicker for eraser
+                    drawingCtx.lineWidth = 50;
                     drawingCtx.strokeStyle = "rgba(0,0,0,1)";
                 } else {
                     drawingCtx.globalCompositeOperation = 'source-over';
@@ -217,7 +216,6 @@ function onResults(results) {
                 prevX = x;
                 prevY = y;
             } else {
-                // No active mode
                 prevX = 0; prevY = 0;
             }
         }
@@ -225,5 +223,5 @@ function onResults(results) {
         prevX = 0; prevY = 0;
     }
     
-    outputCtx.restore();
+    overlayCtx.restore();
 }
