@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Canvas - Hand Tracking Web App</title>
+    <meta name="description" content="Draw in the air using your hand! Powered by MediaPipe and JavaScript.">
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- MediaPipe dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <defs>
+                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#38bdf8" />
+                            <stop offset="100%" stop-color="#818cf8" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+                    <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+                    <path d="M2 2l7.586 7.586"></path>
+                    <circle cx="11" cy="11" r="2"></circle>
+                </svg>
+                <h1>AI Canvas</h1>
+            </div>
+            <div class="controls">
+                <button id="clearBtn" class="btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                    </svg>
+                    Clear Canvas
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="canvas-wrapper">
+                <div id="loading" class="loading-screen">
+                    <div class="spinner"></div>
+                    <p>Loading AI Hand Tracking Model...</p>
+                </div>
+                
+                <div class="canvas-container">
+                    <video id="input_video" class="input_video" autoplay playsinline></video>
+                    <!-- Output canvas for video feed and landmarks -->
+                    <canvas id="output_canvas"></canvas>
+                    <!-- Drawing canvas for actual strokes -->
+                    <canvas id="drawing_canvas"></canvas>
+                    <!-- UI canvas for color palette overlay -->
+                    <canvas id="ui_canvas"></canvas>
+                </div>
+            </div>
+            <div class="instructions glass-panel">
+                <h3>How to use</h3>
+                <ul>
+                    <li>👆 <strong>Draw Mode:</strong> Raise your Index finger.</li>
+                    <li>✌️ <strong>Select Mode:</strong> Raise Index and Middle fingers, or Thumb.</li>
+                    <li>🎨 <strong>Change Color:</strong> Move your hand to the top of the screen in Select Mode.</li>
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
