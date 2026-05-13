@@ -27,6 +27,21 @@ let currentColorIdx = 1; // Default to Blue
 let prevX = 0;
 let prevY = 0;
 
+// Helper: draw a rounded rectangle path (works in ALL browsers)
+function drawRoundedRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.arcTo(x + w, y, x + w, y + r, r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+    ctx.lineTo(x + r, y + h);
+    ctx.arcTo(x, y + h, x, y + h - r, r);
+    ctx.lineTo(x, y + r);
+    ctx.arcTo(x, y, x + r, y, r);
+    ctx.closePath();
+}
+
 // Draw the top palette UI
 function drawUI() {
     uiCtx.clearRect(0, 0, WIDTH, HEIGHT);
@@ -48,8 +63,7 @@ function drawUI() {
         
         // Draw Button Box
         uiCtx.fillStyle = c.isEraser ? "#cbd5e1" : c.hex;
-        uiCtx.beginPath();
-        uiCtx.roundRect(x1 + 10, y1, width, height, 12);
+        drawRoundedRect(uiCtx, x1 + 10, y1, width, height, 12);
         uiCtx.fill();
         
         // Highlight outline if selected
